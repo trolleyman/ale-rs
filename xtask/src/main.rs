@@ -1,4 +1,6 @@
 
+use bindgen::CodegenConfig;
+
 use std::path::{Path, PathBuf};
 
 use clap::{Arg, App, SubCommand};
@@ -44,11 +46,62 @@ fn main() {
 }
 
 fn run_bindgen() {
-	eprintln!("{}generate bindings", XTASK_PREFIX);
+	eprintln!("{}run bindgen", XTASK_PREFIX);
 	let bindings = match bindgen::builder()
 		.clang_arg(format!("-I{}", project_root().join("ale-sys").join("ale").join("src").display()))
 		.clang_arg(format!("-I{}", project_root().join("ale-sys").join("ale").join("ale_py").display()))
-		.header("wrapper.h")
+		.clang_args(&["-x", "c++"])
+		.clang_arg("-std=c++14")
+		.enable_cxx_namespaces()
+		.header(format!("{}", project_root().join("ale-sys").join("wrapper.h").display()))
+		.whitelist_function("ALE_new")
+		.whitelist_function("ALE_del")
+		.whitelist_function("getString")
+		.whitelist_function("getInt")
+		.whitelist_function("getBool")
+		.whitelist_function("getFloat")
+		.whitelist_function("setString")
+		.whitelist_function("setInt")
+		.whitelist_function("setBool")
+		.whitelist_function("setFloat")
+		.whitelist_function("loadROM")
+		.whitelist_function("act")
+		.whitelist_function("game_over")
+		.whitelist_function("reset_game")
+		.whitelist_function("getAvailableModes")
+		.whitelist_function("getAvailableModesSize")
+		.whitelist_function("setMode")
+		.whitelist_function("getAvailableDifficulties")
+		.whitelist_function("getAvailableDifficultiesSize")
+		.whitelist_function("setDifficulty")
+		.whitelist_function("getLegalActionSet")
+		.whitelist_function("getLegalActionSize")
+		.whitelist_function("getMinimalActionSet")
+		.whitelist_function("getMinimalActionSize")
+		.whitelist_function("getFrameNumber")
+		.whitelist_function("lives")
+		.whitelist_function("getEpisodeFrameNumber")
+		.whitelist_function("getScreen")
+		.whitelist_function("getRAM")
+		.whitelist_function("getRAMSize")
+		.whitelist_function("getScreenWidth")
+		.whitelist_function("getScreenHeight")
+		.whitelist_function("getScreenRGB")
+		.whitelist_function("getScreenGrayscale")
+		.whitelist_function("saveState")
+		.whitelist_function("loadState")
+		.whitelist_function("cloneState")
+		.whitelist_function("restoreState")
+		.whitelist_function("cloneSystemState")
+		.whitelist_function("restoreSystemState")
+		.whitelist_function("deleteState")
+		.whitelist_function("saveScreenPNG")
+		.whitelist_function("encodeState")
+		.whitelist_function("encodeStateLen")
+		.whitelist_function("decodeState")
+		.whitelist_function("setLoggerMode")
+		.opaque_type(".*")
+		.with_codegen_config(CodegenConfig::FUNCTIONS | CodegenConfig::TYPES)
 		.generate() {
 			Ok(b) => b,
 			Err(e) => {
