@@ -4,9 +4,18 @@ version = "0.0.1"
 authors = ["Callum Tolley <cgtrolley@gmail.com>"]
 edition = "2018"
 description = "A Rust encapsulation of the Arcade Learning Environment"
+documentation = "https://docs.rs/crates/ale"
+homepage = "https://github.com/trolleyman/ale-rs"  # TODO: Update to trolleyman.org
+repository = "https://github.com/trolleyman/ale-rs"
+license = "MIT"
+readme = "README.md"
+
+exclude = [
+	"ale-sys"
+]
 
 [workspace]
 members = ["ale-sys"]
 
 [dependencies]
-ale-sys = { path = "ale-sys" }
+ale-sys = "0.0.1"
