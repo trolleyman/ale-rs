@@ -18,4 +18,4 @@ exclude = [
 members = ["ale-sys"]
 
 [dependencies]
-ale-sys = "0.0.1"
+ale-sys = { path = "ale-sys" }
