@@ -1,0 +1,18 @@
+
+max_width = 120
+hard_tabs = true
+fn_single_line = true
+indent_style = "Block"
+inline_attribute_width = 50
+match_arm_blocks = false
+merge_imports = true
+normalize_comments = true
+overflow_delimited_expr = true
+reorder_impl_items = true
+struct_field_align_threshold = 8
+use_field_init_shorthand = true
+use_small_heuristics = "Max"
+
+ignore = [
+	"ale-sys/src/bindings.rs"
+]
