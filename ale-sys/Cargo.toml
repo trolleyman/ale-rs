@@ -4,6 +4,10 @@ version = "0.0.1"
 authors = ["Callum Tolley <cgtrolley@gmail.com>"]
 edition = "2018"
 description = "Rust bindings to the Arcade Learning Environment"
+documentation = "https://docs.rs/crates/ale-sys"
+homepage = "https://github.com/trolleyman/ale-rs"  # TODO: Update to trolleyman.org
+repository = "https://github.com/trolleyman/ale-rs"
+license = "MIT"
 build = "build.rs"
 
 [dependencies]
