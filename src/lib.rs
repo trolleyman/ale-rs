@@ -1,17 +1,34 @@
+//! Rust encapsulation of the [Arcade Learning Environment](https://github.com/mgbellemare/Arcade-Learning-Environment).
+//! 
+//! # Requirements
+//! This library requires the same dependencies as the [cmake-rs](https://github.com/alexcrichton/cmake-rs) library. In other words, [CMake](https://cmake.org/) needs to be installed.
+//! 
+//! # Unsafety
+//! Generally this libarary has tried to encapsulate and minimize unsafety, but there could still be some pain points that I've missed (especially regarding C++ exceptions). Be sure to report an issue if this is the case!
 
 use std::ptr::null_mut;
 use std::ffi::CStr;
 use std::convert::TryInto;
+use std::os::raw::c_int;
 
 pub struct Ale {
 	ptr: *mut ale_sys::ALEInterface,
+	available_difficulties: Vec<i32>,
+	available_modes: Vec<i32>,
+	legal_actions: Vec<i32>,
+	minimal_actions: Vec<i32>,
 }
 impl Ale {
+	/// Creates a new interface to the Arcade Learning Environment., i.e. a new emulator insatnce.
 	pub fn new() -> Ale {
 		let ptr = unsafe { ale_sys::ALE_new() };
 		assert!(ptr != null_mut());
 		Ale {
-			ptr
+			ptr,
+			available_difficulties: vec![],
+			available_modes: vec![],
+			legal_actions: vec![],
+			minimal_actions: vec![],
 		}
 	}
 
@@ -36,7 +53,11 @@ impl Ale {
 	/// 
 	/// It is the user's responsibility to check if the game has ended and reset
 	/// when necessary - this method will keep pressing buttons on the game over screen.
-	pub fn act(&mut self, action: isize) -> isize {
+	///
+	/// # Panics
+	/// If the action is not legal.
+	pub fn act(&mut self, action: i32) -> i32 {
+		assert!(self.legal_action_set().contains(&action), "Illegal action: {}", action);
 		unsafe { ale_sys::act(self.ptr, action) }
 	}
 
@@ -53,22 +74,45 @@ impl Ale {
 	/// Returns the vector of modes available for the current game.
 	///
 	/// This should be called only after the rom is loaded.
-	pub fn available_modes(&mut self) -> Vec<isize> {
+	pub fn available_modes(&mut self) -> &[i32] {
 		let size = unsafe { ale_sys::getAvailableModesSize(self.ptr) };
 		assert!(size >= 0);
-		let mut modes = vec![0; size as usize];
-		unsafe { ale_sys::getAvailableModes(self.ptr, modes.as_mut_ptr()); }
-		modes
+		self.available_modes.resize(size as usize, 0);
+		unsafe { ale_sys::getAvailableModes(self.ptr, self.available_modes.as_mut_ptr()); }
+		&self.available_modes
 	}
-	pub fn set_mode(&mut self, mode: isize) {
+
+	/// Sets the mode of the game.
+	///
+	/// This should be called only after the rom is loaded.
+	///
+	/// # Panics
+	/// If the mode is invalid.
+	pub fn set_mode(&mut self, mode: i32) {
+		assert!(self.available_modes().contains(&mode), "Invalid mode: {}", mode);
 		unsafe { ale_sys::setMode(self.ptr, mode); }
 	}
-	pub fn available_difficulties(&mut self) -> Vec<isize> {
+
+	/// Returns the vector of difficulties available for the current game.
+	///
+	/// This should be called only after the rom is loaded.
+	/// 
+	/// Notice that there are 2 levers, the right and left switches. They are not tied to any specific player. In Venture, for example, we have the following interpretation for the difficulties:
+	///
+	/// --------------------------------
+	/// | Skill Level | Switch Setting |
+	/// --------------------------------
+	/// | 1           | left B/right B |
+	/// | 2           | left B/right A |
+	/// | 3           | left A/right B |
+	/// | 4           | left A/right A |
+	/// --------------------------------
+	pub fn available_difficulties(&mut self) -> &[i32] {
 		let size = unsafe { ale_sys::getAvailableDifficultiesSize(self.ptr) };
 		assert!(size >= 0);
-		let mut difficulties = vec![0; size as usize];
-		unsafe { ale_sys::getAvailableDifficulties(self.ptr, difficulties.as_mut_ptr()); }
-		difficulties
+		self.available_difficulties.resize(size as usize, 0);
+		unsafe { ale_sys::getAvailableDifficulties(self.ptr, self.available_difficulties.as_mut_ptr()); }
+		&self.available_difficulties
 	}
 
 	/// Sets the difficulty of the game.
@@ -76,41 +120,42 @@ impl Ale {
 	/// This should be called only after the rom is loaded.
 	/// 
 	/// # Panics
-	/// If the difficulty is not a valid difficulty TODO
-	pub fn set_difficulty(&mut self, difficulty: isize) {
+	/// If the difficulty is not a valid difficulty
+	pub fn set_difficulty(&mut self, difficulty: i32) {
+		assert!(self.available_difficulties().contains(&difficulty), "Invalid difficulty: {}", difficulty);
 		unsafe { ale_sys::setDifficulty(self.ptr, difficulty); }
 	}
 
 	/// Returns the vector of legal actions. This should be called only after the ROM is loaded.
-	pub fn legal_action_set(&mut self) -> Vec<isize> {
+	pub fn legal_action_set(&mut self) -> &[i32] {
 		let size = unsafe { ale_sys::getLegalActionSize(self.ptr) };
 		assert!(size >= 0);
-		let mut actions = vec![0; size as usize];
-		unsafe { ale_sys::getLegalActionSet(self.ptr, actions.as_mut_ptr()); }
-		actions
+		self.legal_actions.resize(size as usize, 0);
+		unsafe { ale_sys::getLegalActionSet(self.ptr, self.legal_actions.as_mut_ptr()); }
+		&self.legal_actions
 	}
 
 	/// Returns the vector of the minimal set of actions needed to play the game.
-	pub fn minimal_action_set(&mut self) -> Vec<isize> {
+	pub fn minimal_action_set(&mut self) -> &[i32] {
 		let size = unsafe { ale_sys::getMinimalActionSize(self.ptr) };
 		assert!(size >= 0);
-		let mut actions = vec![0; size as usize];
-		unsafe { ale_sys::getMinimalActionSet(self.ptr, actions.as_mut_ptr()); }
-		actions
+		self.minimal_actions.resize(size as usize, 0);
+		unsafe { ale_sys::getMinimalActionSet(self.ptr, self.minimal_actions.as_mut_ptr()); }
+		&self.minimal_actions
 	}
 
 	/// Returns the frame number since the loading of the ROM.
-	pub fn frame_number(&mut self) -> isize {
-		unsafe { ale_sys::getFrameNumber(self.ptr) }
+	pub fn frame_number(&mut self) -> i32 {
+		unsafe { ale_sys::getFrameNumber(self.ptr) as i32 }
 	}
 
 	/// Returns the remaining number of lives.
-	pub fn lives(&mut self) -> isize {
+	pub fn lives(&mut self) -> i32 {
 		unsafe { ale_sys::lives(self.ptr) }
 	}
 
 	/// Returns the frame number since the start of the current episode.
-	pub fn episode_frame_number(&mut self) -> isize {
+	pub fn episode_frame_number(&mut self) -> i32 {
 		unsafe { ale_sys::getEpisodeFrameNumber(self.ptr) }
 	}
 
@@ -170,26 +215,105 @@ impl Ale {
 		unsafe { ale_sys::loadState(self.ptr); } 
 	}
 
-	// VVV TODO VVV
-	// pub fn cloneState(&mut self) -> *mut ALEState;
-	// pub fn restoreState(&mut self, state: *mut ALEState);
-	// pub fn cloneSystemState(&mut self) -> *mut ALEState;
-	// pub fn restoreSystemState(&mut self, state: *mut ALEState);
-	// pub fn deleteState(state: *mut ALEState);
-	// pub fn saveScreenPNG(&mut self, filename: *const c_char);
+	/// This makes a copy of the environment state. This copy does *not* include pseudorandomness, making it suitable for planning purposes. By contrast, see [`clone_system_state()`](#func.clone_system_state).
+	pub fn clone_state(&mut self) -> AleState {
+		AleState {
+			ptr: unsafe { ale_sys::cloneState(self.ptr) },
+		}
+	}
+	
+	/// Reverse operation of [`clone_state()`](#func.clone_state). This does not restore pseudorandomness, so that repeated
+	/// calls to [`restore_state()`](#func.restore_state) in the stochastic controls setting will not lead to the same outcomes.
+	///
+	/// By contrast, see [`restore_system_state()`](#func.restore_system_state).
+	pub fn restore_state(&mut self, state: &AleState) {
+		unsafe { ale_sys::restoreState(self.ptr, state.ptr); }
+	}
+	
+	/// This makes a copy of the system & environment state, suitable for serialization. This includes pseudorandomness and so is *not* suitable for planning purposes.
+	pub fn clone_system_state(&mut self) -> AleState {
+		AleState {
+			ptr: unsafe { ale_sys::cloneSystemState(self.ptr) },
+		}
+	}
+	
+	/// Reverse operation of [`clone_system_state()`](#func.clone_system_state).
+	pub fn restore_system_state(&mut self, state: &AleState) {
+		unsafe { ale_sys::restoreSystemState(self.ptr, state.ptr); }
+	}
 
-	// // Encodes the state as a raw bytestream. This may have multiple '\0' characters
-	// // and thus should not be treated as a C string. Use encodeStateLen to find the length
-	// // of the buffer to pass in, or it will be overrun as this simply memcpys bytes into the buffer.
-	// pub fn encodeState(state: *mut ALEState, buf: *mut c_char, buf_len: c_int);
-	// pub fn encodeStateLen(state: *mut ALEState) -> c_int;
-	// pub fn decodeState(serialized: *const c_char, len: c_int) -> *mut ALEState;
+	/// Save the current screen as a png file
+	/// 
+	/// # Unsafety
+	/// I am not sure, but this function may trigger undefined behaviour when a C++ exception is triggered.
+	/// 
+	/// To be safe, this function is marked as unsafe.
+	pub unsafe fn save_screen_png(&mut self, filename: &CStr) {
+		ale_sys::saveScreenPNG(self.ptr, filename.as_ptr());
+	}
 
-	// // 0: Info, 1: Warning, 2: Error
-	// pub fn setLoggerMode(mode: c_int);
+	/// Set logger mode
+	pub fn set_logger_mode(mode: LoggerMode) {
+		unsafe { ale_sys::setLoggerMode(mode as c_int); }
+	}
 }
 impl Drop for Ale {
 	fn drop(&mut self) {
-		unsafe { ale_sys::ALE_del(self.ptr); }
+		unsafe {
+			let ptr = self.ptr;
+			self.ptr = std::ptr::null_mut();
+			ale_sys::ALE_del(ptr);
+		}
 	}
+}
+
+pub struct AleState {
+	ptr: *mut ale_sys::ALEState,
+}
+impl AleState {
+	/// Encodes the state as a raw bytestream.
+	/// 
+	/// # Panics
+	/// If the length of `buf` is not large enough. Use [`encode_state_len()`](#func.encode_state_len) to get the needed length.
+	pub fn encode_state(&self, buf: &mut [u8]) {
+		assert!(buf.len() >= self.encode_state_len(), "Buffer not long enough to store encoded state. Expected {}, got {}", self.encode_state_len(), buf.len());
+		unsafe { ale_sys::encodeState(self.ptr, buf.as_mut_ptr() as *mut _, buf.len() as c_int); }
+	}
+
+	/// Returns the length of the buffer needed to encode the state.
+	///
+	/// # Panics
+	/// If the C API returns a negative size.
+	pub fn encode_state_len(&self) -> usize {
+		let size = unsafe { ale_sys::encodeStateLen(self.ptr) };
+		assert!(size >= 0, "Invalid size: {}", size);
+		size as usize
+	}
+
+	/// Decode state from a raw bytestream.
+	///
+	/// # Panics
+	/// If the serialized length is too long to fit into a C integer.
+	pub fn decode_state(serialized: &[u8]) -> AleState {
+		let len: c_int = serialized.len().try_into().expect("Length too long");
+		// TODO: Exceptions
+		AleState {
+			ptr: unsafe { ale_sys::decodeState(serialized.as_ptr() as *const _, len) },
+		}
+	}
+}
+impl Drop for AleState {
+	fn drop(&mut self) {
+		unsafe {
+			let ptr = self.ptr;
+			self.ptr = std::ptr::null_mut();
+			ale_sys::deleteState(ptr);
+		}
+	}
+}
+
+pub enum LoggerMode {
+	Info = 0,
+	Warning = 1,
+	Error = 2,
 }
