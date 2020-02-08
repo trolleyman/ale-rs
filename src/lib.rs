@@ -101,14 +101,12 @@ impl Ale {
 	/// 
 	/// Notice that there are 2 levers, the right and left switches. They are not tied to any specific player. In Venture, for example, we have the following interpretation for the difficulties:
 	///
-	/// --------------------------------
 	/// | Skill Level | Switch Setting |
-	/// --------------------------------
+	/// |-------------|----------------|
 	/// | 1           | left B/right B |
 	/// | 2           | left B/right A |
 	/// | 3           | left A/right B |
 	/// | 4           | left A/right A |
-	/// --------------------------------
 	pub fn available_difficulties(&mut self) -> &[i32] {
 		let size = unsafe { ale_sys::getAvailableDifficultiesSize(self.ptr) };
 		assert!(size >= 0);
