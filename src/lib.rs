@@ -1,5 +1,7 @@
 //! Rust encapsulation of the [Arcade Learning Environment](https://github.com/mgbellemare/Arcade-Learning-Environment).
 //! 
+//! This is currently a work in progress.
+//! 
 //! # Requirements
 //! This library requires the same dependencies as the [cmake-rs](https://github.com/alexcrichton/cmake-rs) library. In other words, [CMake](https://cmake.org/) needs to be installed.
 //! 
