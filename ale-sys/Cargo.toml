@@ -19,3 +19,4 @@ exclude = [
 
 [build-dependencies]
 cmake = "0.1"
+tempdir = "0.3.7"
