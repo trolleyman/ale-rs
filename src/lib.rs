@@ -43,11 +43,19 @@ impl Ale {
 	// pub fn setBool(ale: *mut ALEInterface, key: *const c_char, value: bool) -> c_void; // TODO
 	// pub fn setFloat(ale: *mut ALEInterface, key: *const c_char, value: f32) -> c_void; // TODO
 
-	/// Resets the Atari and loads a game.
+	/// Resets the Atari and loads a bundled game.
+	///
+	/// After this call the game should be ready to play. This is necessary after changing a
+	/// setting for the setting to take effect.
+	pub fn load_rom(&mut self, rom: BundledRom) {
+		
+	}
+
+	/// Resets the Atari and loads a game from the file specified.
 	/// 
 	/// After this call the game should be ready to play. This is necessary after changing a
 	/// setting for the setting to take effect.
-	pub fn load_rom(&mut self, rom_file: &CStr) {
+	pub fn load_rom_file(&mut self, rom_file: &CStr) {
 		unsafe { ale_sys::loadROM(self.ptr, rom_file.as_ptr()); }
 	}
 
@@ -316,4 +324,8 @@ pub enum LoggerMode {
 	Info = 0,
 	Warning = 1,
 	Error = 2,
+}
+
+pub enum BundledRom {
+	
 }

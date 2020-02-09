@@ -10,6 +10,10 @@ repository = "https://github.com/trolleyman/ale-rs"
 license = "MIT"
 readme = "README.md"
 
+include = [
+	"roms"
+]
+
 exclude = [
 	"ale-sys"
 ]

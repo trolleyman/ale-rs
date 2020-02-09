@@ -1,10 +1,15 @@
 
 use bindgen::CodegenConfig;
 
+use std::fs::File;
 use std::path::{Path, PathBuf};
+use std::ffi::OsStr;
 
 use clap::{Arg, App, SubCommand};
 
+
+const PIP_ATARI_PY_TAR_URL: &'static str = "https://files.pythonhosted.org/packages/43/dd/2721f34a89dc520d2e09363fd23d110a33bbab2399e50fdced6eb2ed2157/atari-py-0.2.6.tar.gz";
+const ATARI_PY_TAR_FILENAME: &'static str = "atari-py-0.2.6.tar.gz";
 
 const XTASK_PREFIX: &'static str = "\x1B[1m\x1B[32m       xtask\x1B[0m ";
 const ERROR_PREFIX: &'static str = "\x1B[1m\x1B[31merror\x1B[37m:\x1B[0m ";
@@ -16,6 +21,8 @@ fn main() {
 		.author("Callum Tolley")
 		.subcommand(SubCommand::with_name("gen-bindings")
 			.about("Generate Arcade Learning Environment bindings"))
+		.subcommand(SubCommand::with_name("download-roms")
+			.about("Download builtin Atari ROMs, and place in the roms/ folder"))
 		.subcommand(SubCommand::with_name("clean")
 			.about("Remove the target directories")
 			.arg(Arg::with_name("all")
@@ -27,6 +34,10 @@ fn main() {
 	if let Some(_) = matches.subcommand_matches("gen-bindings") {
 		eprintln!("{}gen-bindings", XTASK_PREFIX);
 		run_bindgen();
+
+	} else if let Some(_) = matches.subcommand_matches("download-roms") {
+		eprintln!("{}download-roms", XTASK_PREFIX);
+		run_download_roms();
 
 	} else if let Some(matches) = matches.subcommand_matches("clean") {
 		eprintln!("{}clean", XTASK_PREFIX);
@@ -114,6 +125,56 @@ fn run_bindgen() {
 		eprintln!("{}failed to write bindings: {:?}", ERROR_PREFIX, e);
 		std::process::exit(1);
 	}
+}
+
+fn run_download_roms() {
+	let dir = tempdir::TempDir::new("ale-xtask").expect("failed to generate temp directory");
+	let tar_path = dir.path().join(ATARI_PY_TAR_FILENAME);
+	let extract_dir = dir.path().join("extract");
+
+	run_download(PIP_ATARI_PY_TAR_URL, &tar_path);
+	run_extract(&tar_path, &extract_dir);
+
+	let roms_dir = project_root().join("roms");
+	std::fs::create_dir_all(&roms_dir).expect("failed to create roms dir");
+	for rom in std::fs::read_dir(extract_dir.join("atari-py-0.2.6").join("atari_py").join("atari_roms")).expect("failed to read dir") {
+		let rom = rom.expect("failed to read dir");
+		eprintln!("{}copy {}", XTASK_PREFIX, rom.path().file_name().unwrap_or(OsStr::new("")).to_string_lossy());
+		std::fs::copy(rom.path(), roms_dir.join(rom.path().file_name().unwrap()))
+			.expect("failed to copy file");
+	}
+}
+
+fn run_download(url: &str, dst: &Path) {
+	eprintln!("{}download {}", XTASK_PREFIX, url);
+	let mut out = File::create(&dst).expect("failed to create dst file");
+	let mut res = match reqwest::blocking::get(url) {
+		Err(e) => {
+			eprintln!("{}failed to download {}: {}", ERROR_PREFIX, url, e);
+			::std::process::exit(1);
+		},
+		Ok(r) => r,
+	};
+
+	if !res.status().is_success() {
+		eprintln!("{}failed to download {}: status is {:?}", ERROR_PREFIX, url, res.status());
+		::std::process::exit(1);
+	}
+
+	if let Err(e) = res.copy_to(&mut out) {
+		eprintln!("{}failed to download {}: {}", ERROR_PREFIX, url, e);
+		::std::process::exit(1);
+	}
+}
+
+fn run_extract(tar_path: &Path, extract_dir: &Path) {
+	eprintln!("{}extract {} to {}", XTASK_PREFIX, tar_path.file_name().unwrap_or(OsStr::new("")).to_string_lossy(), extract_dir.display());
+	std::fs::create_dir_all(&extract_dir).expect("failed to create extract dir");
+
+	let tar_gz = File::open(tar_path).expect("failed to open tar.gz");
+	let tar = flate2::read::GzDecoder::new(tar_gz);
+	let mut archive = tar::Archive::new(tar);
+	archive.unpack(extract_dir).expect("failed to extract tar.gz");
 }
 
 fn run_rmdir(dir: impl AsRef<Path>, error_fail: bool) -> Result<(), ()> {
