@@ -9,9 +9,10 @@
 //! Generally this libarary has tried to encapsulate and minimize unsafety, but there could still be some pain points that I've missed (especially regarding C++ exceptions). Be sure to report an issue if this is the case!
 
 use std::ptr::null_mut;
-use std::ffi::CStr;
+use std::ffi::{CString, CStr};
 use std::convert::TryInto;
 use std::os::raw::c_int;
+use std::io;
 
 pub struct Ale {
 	ptr: *mut ale_sys::ALEInterface,
@@ -47,8 +48,28 @@ impl Ale {
 	///
 	/// After this call the game should be ready to play. This is necessary after changing a
 	/// setting for the setting to take effect.
-	pub fn load_rom(&mut self, rom: BundledRom) {
-		
+	///
+	/// Returns an error if there was an IO exception when saving the bundled ROM to a temporary directory.
+	///
+	/// # Examples
+	/// ```
+	/// # use ale::{Ale, BundledRom};
+	/// let mut ale = Ale::new();
+	/// ale.load_rom(BundledRom::Breakout);
+	/// ale.act(1);
+	/// assert_eq!(ale.is_game_over(), false);
+	/// ```
+	pub fn load_rom(&mut self, rom: BundledRom) -> io::Result<()> {
+		// Save ROM to temp dir
+		let dir = tempdir::TempDir::new("ale-rs")?;
+		let rom_path = dir.path().join(rom.filename());
+		std::fs::write(&rom_path, rom.data())?;
+
+		// Call load_rom_file
+		let rom_path_string = rom_path.to_string_lossy().to_string();
+		let rom_path_c_str = CString::new(rom_path_string).expect("Invalid path");
+		self.load_rom_file(&rom_path_c_str);
+		Ok(())
 	}
 
 	/// Resets the Atari and loads a game from the file specified.
@@ -326,6 +347,252 @@ pub enum LoggerMode {
 	Error = 2,
 }
 
+/// Enum of ROMs that come bundled with the libarary.
+/// 
+/// Note: Commented out ROMs are supported, but not bundled.
 pub enum BundledRom {
-	
+	Adventure,
+	AirRaid,
+	Alien,
+	Amidar,
+	Assault,
+	Asterix,
+	Asteroids,
+	Atlantis,
+	BankHeist,
+	BattleZone,
+	BeamRider,
+	Berzerk,
+	Bowling,
+	Boxing,
+	Breakout,
+	Carnival,
+	Centipede,
+	ChopperCommand,
+	CrazyClimber,
+	Defender,
+	DemonAttack,
+	// DonkeyKong,
+	DoubleDunk,
+	ElevatorAction,
+	Enduro,
+	FishingDerby,
+	Freeway,
+	// Frogger,
+	Frostbite,
+	// Galaxian,
+	Gopher,
+	Gravitar,
+	Hero,
+	IceHockey,
+	JamesBond,
+	JourneyEscape,
+	Kaboom,
+	Kangaroo,
+	// Koolaid,
+	// KeystoneKapers,
+	// Kingkong,
+	Krull,
+	KungFuMaster,
+	// LaserGates,
+	// LostLuggage,
+	MontezumaRevenge,
+	// MrDo,
+	MsPacman,
+	NameThisGame,
+	Phoenix,
+	Pitfall,
+	Pong,
+	Pooyan,
+	PrivateEye,
+	QBert,
+	RiverRaid,
+	RoadRunner,
+	RoboTank,
+	Seaquest,
+	// SirLancelot,
+	Skiing,
+	// Solaris,
+	SpaceInvaders,
+	StarGunner,
+	Tennis,
+	// Tetris,
+	TimePilot,
+	// Turmoil,
+	// Trondead,
+	Tutankham,
+	UpNDown,
+	Venture,
+	VideoPinball,
+	WizardOfWor,
+	YarsRevenge,
+	Zaxxon,
+}
+impl BundledRom {
+	/// Returns the filename that the ROM should be named, in order for the ALE to pick up on it and
+	/// use the correct settings.
+	pub fn filename(&self) -> &'static str {
+		use BundledRom::*;
+		match self {
+			Adventure => "adventure.bin",
+			AirRaid => "air_raid.bin",
+			Alien => "alien.bin",
+			Amidar => "amidar.bin",
+			Assault => "assault.bin",
+			Asterix => "asterix.bin",
+			Asteroids => "asteroids.bin",
+			Atlantis => "atlantis.bin",
+			BankHeist => "bank_heist.bin",
+			BattleZone => "battle_zone.bin",
+			BeamRider => "beam_rider.bin",
+			Berzerk => "berzerk.bin",
+			Bowling => "bowling.bin",
+			Boxing => "boxing.bin",
+			Breakout => "breakout.bin",
+			Carnival => "carnival.bin",
+			Centipede => "centipede.bin",
+			ChopperCommand => "chopper_command.bin",
+			CrazyClimber => "crazy_climber.bin",
+			Defender => "defender.bin",
+			DemonAttack => "demon_attack.bin",
+			// DonkeyKong => ???,
+			DoubleDunk => "double_dunk.bin",
+			ElevatorAction => "elevator_action.bin",
+			Enduro => "enduro.bin",
+			FishingDerby => "fishing_derby.bin",
+			Freeway => "freeway.bin",
+			// Frogger => ???,
+			Frostbite => "frostbite.bin",
+			// Galaxian => ???,
+			Gopher => "gopher.bin",
+			Gravitar => "gravitar.bin",
+			Hero => "hero.bin",
+			IceHockey => "ice_hockey.bin",
+			JamesBond => "jamesbond.bin",
+			JourneyEscape => "journey_escape.bin",
+			Kaboom => "kaboom.bin",
+			Kangaroo => "kangaroo.bin",
+			// Koolaid => ???,
+			// KeystoneKapers => ???,
+			// Kingkong => ???,
+			Krull => "krull.bin",
+			KungFuMaster => "kung_fu_master.bin",
+			// LaserGates => ???,
+			// LostLuggage => ???,
+			MontezumaRevenge => "montezuma_revenge.bin",
+			// MrDo => ???,
+			MsPacman => "ms_pacman.bin",
+			NameThisGame => "name_this_game.bin",
+			Phoenix => "phoenix.bin",
+			Pitfall => "pitfall.bin",
+			Pong => "pong.bin",
+			Pooyan => "pooyan.bin",
+			PrivateEye => "private_eye.bin",
+			QBert => "qbert.bin",
+			RiverRaid => "riverraid.bin",
+			RoadRunner => "road_runner.bin",
+			RoboTank => "robotank.bin",
+			Seaquest => "seaquest.bin",
+			// SirLancelot => ???,
+			Skiing => "skiing.bin",
+			// Solaris => ???,
+			SpaceInvaders => "space_invaders.bin",
+			StarGunner => "star_gunner.bin",
+			Tennis => "tennis.bin",
+			// Tetris => ???,
+			TimePilot => "time_pilot.bin",
+			// Turmoil => ???,
+			// Trondead => ???,
+			Tutankham => "tutankham.bin",
+			UpNDown => "up_n_down.bin",
+			Venture => "venture.bin",
+			VideoPinball => "video_pinball.bin",
+			WizardOfWor => "wizard_of_wor.bin",
+			YarsRevenge => "yars_revenge.bin",
+			Zaxxon => "zaxxon.bin",
+		}
+	}
+
+	/// Returns the raw binary data of the ROM.
+	pub fn data(&self) -> &'static [u8] {
+		use BundledRom::*;
+		match self {
+			Adventure => include_bytes!("../roms/adventure.bin"),
+			AirRaid => include_bytes!("../roms/air_raid.bin"),
+			Alien => include_bytes!("../roms/alien.bin"),
+			Amidar => include_bytes!("../roms/amidar.bin"),
+			Assault => include_bytes!("../roms/assault.bin"),
+			Asterix => include_bytes!("../roms/asterix.bin"),
+			Asteroids => include_bytes!("../roms/asteroids.bin"),
+			Atlantis => include_bytes!("../roms/atlantis.bin"),
+			BankHeist => include_bytes!("../roms/bank_heist.bin"),
+			BattleZone => include_bytes!("../roms/battle_zone.bin"),
+			BeamRider => include_bytes!("../roms/beam_rider.bin"),
+			Berzerk => include_bytes!("../roms/berzerk.bin"),
+			Bowling => include_bytes!("../roms/bowling.bin"),
+			Boxing => include_bytes!("../roms/boxing.bin"),
+			Breakout => include_bytes!("../roms/breakout.bin"),
+			Carnival => include_bytes!("../roms/carnival.bin"),
+			Centipede => include_bytes!("../roms/centipede.bin"),
+			ChopperCommand => include_bytes!("../roms/chopper_command.bin"),
+			CrazyClimber => include_bytes!("../roms/crazy_climber.bin"),
+			Defender => include_bytes!("../roms/defender.bin"),
+			DemonAttack => include_bytes!("../roms/demon_attack.bin"),
+			// DonkeyKong => ???,
+			DoubleDunk => include_bytes!("../roms/double_dunk.bin"),
+			ElevatorAction => include_bytes!("../roms/elevator_action.bin"),
+			Enduro => include_bytes!("../roms/enduro.bin"),
+			FishingDerby => include_bytes!("../roms/fishing_derby.bin"),
+			Freeway => include_bytes!("../roms/freeway.bin"),
+			// Frogger => ???,
+			Frostbite => include_bytes!("../roms/frostbite.bin"),
+			// Galaxian => ???,
+			Gopher => include_bytes!("../roms/gopher.bin"),
+			Gravitar => include_bytes!("../roms/gravitar.bin"),
+			Hero => include_bytes!("../roms/hero.bin"),
+			IceHockey => include_bytes!("../roms/ice_hockey.bin"),
+			JamesBond => include_bytes!("../roms/jamesbond.bin"),
+			JourneyEscape => include_bytes!("../roms/journey_escape.bin"),
+			Kaboom => include_bytes!("../roms/kaboom.bin"),
+			Kangaroo => include_bytes!("../roms/kangaroo.bin"),
+			// Koolaid => ???,
+			// KeystoneKapers => ???,
+			// Kingkong => ???,
+			Krull => include_bytes!("../roms/krull.bin"),
+			KungFuMaster => include_bytes!("../roms/kung_fu_master.bin"),
+			// LaserGates => ???,
+			// LostLuggage => ???,
+			MontezumaRevenge => include_bytes!("../roms/montezuma_revenge.bin"),
+			// MrDo => ???,
+			MsPacman => include_bytes!("../roms/ms_pacman.bin"),
+			NameThisGame => include_bytes!("../roms/name_this_game.bin"),
+			Phoenix => include_bytes!("../roms/phoenix.bin"),
+			Pitfall => include_bytes!("../roms/pitfall.bin"),
+			Pong => include_bytes!("../roms/pong.bin"),
+			Pooyan => include_bytes!("../roms/pooyan.bin"),
+			PrivateEye => include_bytes!("../roms/private_eye.bin"),
+			QBert => include_bytes!("../roms/qbert.bin"),
+			RiverRaid => include_bytes!("../roms/riverraid.bin"),
+			RoadRunner => include_bytes!("../roms/road_runner.bin"),
+			RoboTank => include_bytes!("../roms/robotank.bin"),
+			Seaquest => include_bytes!("../roms/seaquest.bin"),
+			// SirLancelot => ???,
+			Skiing => include_bytes!("../roms/skiing.bin"),
+			// Solaris => ???,
+			SpaceInvaders => include_bytes!("../roms/space_invaders.bin"),
+			StarGunner => include_bytes!("../roms/star_gunner.bin"),
+			Tennis => include_bytes!("../roms/tennis.bin"),
+			// Tetris => ???,
+			TimePilot => include_bytes!("../roms/time_pilot.bin"),
+			// Turmoil => ???,
+			// Trondead => ???,
+			Tutankham => include_bytes!("../roms/tutankham.bin"),
+			UpNDown => include_bytes!("../roms/up_n_down.bin"),
+			Venture => include_bytes!("../roms/venture.bin"),
+			VideoPinball => include_bytes!("../roms/video_pinball.bin"),
+			WizardOfWor => include_bytes!("../roms/wizard_of_wor.bin"),
+			YarsRevenge => include_bytes!("../roms/yars_revenge.bin"),
+			Zaxxon => include_bytes!("../roms/zaxxon.bin"),
+		}
+	}
 }
