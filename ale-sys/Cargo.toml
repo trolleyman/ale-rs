@@ -12,7 +12,6 @@ readme = "README.md"
 build = "build.rs"
 
 [dependencies]
-#libc = "*" # TODO
 
 [build-dependencies]
-#cmake = "*" # TODO
+cmake = "0.1"
