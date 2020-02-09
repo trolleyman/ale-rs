@@ -11,6 +11,10 @@ license = "MIT"
 readme = "README.md"
 build = "build.rs"
 
+exclude = [
+	"ale/CMakeFiles"
+]
+
 [dependencies]
 
 [build-dependencies]
