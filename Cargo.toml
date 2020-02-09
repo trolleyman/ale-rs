@@ -11,16 +11,14 @@ license = "MIT"
 readme = "README.md"
 
 include = [
-	"roms"
-]
-
-exclude = [
-	"ale-sys"
+	"src",
+	"roms",
+	"Cargo.toml",
 ]
 
 [workspace]
 members = ["ale-sys"]
 
 [dependencies]
-ale-sys = { path = "ale-sys" }
+ale-sys = { path = "ale-sys", version = "0.1.0" }
 tempdir = "0.3.7"
