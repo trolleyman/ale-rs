@@ -12,7 +12,9 @@ Rust bindings to the [Arcade Learning Environment](https://github.com/mgbellemar
 One of the tweaks is bundling `zlib`, so that compilation is easier. See https://github.com/trolleyman/Arcade-Learning-Environment.
 
 # `xtask`
-`xtask` is a small sub-project used for development. There are two commands: `gen-bindings` and `download-roms`.
+`xtask` is a small sub-project used for development. Subcommands can be run by running `cargo xtask <subcommand>` in the root of the repository.
+
+There are two subcommands: `gen-bindings` and `download-roms`.
 
 `gen-bindings` generates the [`ale-sys/src/bindings.rs`](ale-sys/src/bindings.rs) file, and requires clang to be installed.
 
