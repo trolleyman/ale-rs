@@ -1,10 +1,10 @@
 [package]
 name = "ale-sys"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Callum Tolley <cgtrolley@gmail.com>"]
 edition = "2018"
 description = "Rust bindings to the Arcade Learning Environment"
-documentation = "https://docs.rs/crates/ale-sys"
+documentation = "https://docs.rs/ale-sys"
 homepage = "https://github.com/trolleyman/ale-rs"  # TODO: Update to trolleyman.org
 repository = "https://github.com/trolleyman/ale-rs"
 license = "MIT"
@@ -12,7 +12,8 @@ readme = "README.md"
 build = "build.rs"
 
 exclude = [
-	"ale/CMakeFiles"
+	"ale/CMakeFiles",
+	"ale/build"
 ]
 
 [dependencies]
