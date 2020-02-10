@@ -22,3 +22,8 @@ members = ["ale-sys"]
 [dependencies]
 ale-sys = { path = "ale-sys", version = "0.1.1" }
 tempdir = "0.3.7"
+
+[dev-dependencies]
+rand = "0.7.3"
+winit = "0.20.0-alpha4"
+winit_input_helper = "0.4.0-alpha4"
