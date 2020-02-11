@@ -6,6 +6,18 @@ Some games such as Breakout, Asteroids, MsPacman and Space Invaders are bundled 
 ## Requirements
 - CMake (See [cmake-rs](https://github.com/alexcrichton/cmake-rs))
 
+## Breakout example
+For an example of the Atari playing Breakout, run this command:
+```
+cargo run --release --example breakout
+```
+Controls:
+- <kbd>P</kbd>: Toggle pause
+- <kbd>A</kbd>/<kbd>Left</kbd>: Move paddle left
+- <kbd>D</kbd>/<kbd>Right</kbd>: Move paddle right
+- <kbd>Space</kbd>: "Fire" key (trigger ball)
+- <kbd>R</kbd>: Reset game
+
 # `ale-sys`
 Rust bindings to the [Arcade Learning Environment](https://github.com/mgbellemare/Arcade-Learning-Environment), with a few tweaks. See https://github.com/trolleyman/Arcade-Learning-Environment.
 
