@@ -1,4 +1,6 @@
 
+use std::time::{Instant, Duration};
+
 use ale::{Ale, BundledRom};
 
 use pixels::{Error, Pixels, SurfaceTexture};
@@ -9,6 +11,8 @@ use winit_input_helper::WinitInputHelper;
 
 const SCREEN_WIDTH: u32 = 160;
 const SCREEN_HEIGHT: u32 = 210;
+
+const FRAME_DURATION: Duration = Duration::from_nanos(1_000_000_000 / 60);
 
 fn main() -> Result<(), Error> {
 	let mut ale = Ale::new();
@@ -23,6 +27,7 @@ fn main() -> Result<(), Error> {
 
 	let mut pixels = Pixels::new(SCREEN_WIDTH, SCREEN_HEIGHT, surface_texture)?;
 	let mut paused = false;
+	let mut prev_update = Instant::now();
 	println!("Paused: false");
 
 	let mut screen = vec![];
@@ -62,21 +67,21 @@ fn main() -> Result<(), Error> {
 		// For everything else, for let winit_input_helper collect events to build its state.
 		// It returns `true` when it is time to update our game state and request a redraw.
 		if input.update(event) {
-			// Close events
+			// Close event
 			if input.key_pressed(VirtualKeyCode::Escape) || input.quit() {
 				*control_flow = ControlFlow::Exit;
 				return;
 			}
+			// Pause
 			if input.key_pressed(VirtualKeyCode::P) {
 				paused = !paused;
 				println!("Paused: {}", paused);
+				if !paused {
+					prev_update = Instant::now();
+				}
 			}
+			// Reset
 			if input.key_pressed(VirtualKeyCode::R) {
-				ale.reset_game();
-				println!("RESET");
-			}
-			if ale.is_game_over() {
-				println!("Game OVER");
 				ale.reset_game();
 				println!("RESET");
 			}
@@ -94,14 +99,31 @@ fn main() -> Result<(), Error> {
 				None
 			};
 			
-			// Act
-			if let Some(action) = action {
-				if ale.legal_action_set().contains(&action) {
-					//println!("Update: {}", action);
-					ale.act(action);
-				} else {
-					println!("Warning: illegal action: {}", action);
+			// Update
+			let now = Instant::now();
+			let mut diff = now - prev_update;
+			if diff > 5 * FRAME_DURATION {
+				diff = 5 * FRAME_DURATION;
+				println!("Warning: skip of {}s occured", (diff - 5 * FRAME_DURATION).as_secs_f64());
+			}
+			while diff > FRAME_DURATION {
+				diff -= FRAME_DURATION;
+				prev_update = now;
+				if let Some(action) = action {
+					if ale.legal_action_set().contains(&action) {
+						//println!("Update: {}", action);
+						ale.act(action);
+					} else {
+						println!("Warning: illegal action: {}", action);
+					}
 				}
+			}
+			
+			// Game over
+			if ale.is_game_over() {
+				println!("Game OVER");
+				ale.reset_game();
+				println!("RESET");
 			}
 			
 			// Adjust high DPI factor
@@ -114,6 +136,7 @@ fn main() -> Result<(), Error> {
 				p_height = size.height;
 				pixels.resize(p_width, p_height);
 			}
+			
 			// Request redraw
 			window.request_redraw();
 		}
