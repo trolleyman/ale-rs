@@ -1,6 +1,6 @@
 [package]
 name = "ale"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Callum Tolley <cgtrolley@gmail.com>"]
 edition = "2018"
 description = "A Rust encapsulation of the Arcade Learning Environment"

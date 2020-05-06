@@ -1,10 +1,16 @@
 //! Rust encapsulation of the [Arcade Learning Environment](https://github.com/mgbellemare/Arcade-Learning-Environment).
-//! 
-//! This is currently a work in progress.
-//! 
+//!
+//! The main use of the ALE is running Atari 2600 games. An example for how to play breakout is included in the library. <kbd>Space</kbd> to start.
+//! ```sh
+//! git clone --recursive https://github.com/trolleyman/ale-rs.git
+//! cd ale-rs
+//! cargo xtask download-roms  # Breakout ROM needs to be downloaded from a third-party source
+//! cargo run --release --example breakout
+//! ```
+//!
 //! # Requirements
 //! This library requires the same dependencies as the [cmake-rs](https://github.com/alexcrichton/cmake-rs) library. In other words, [CMake](https://cmake.org/) needs to be installed.
-//! 
+//!
 //! # Unsafety
 //! Generally this libarary has tried to encapsulate and minimize unsafety, but there could still be some pain points that I've missed (especially regarding C++ exceptions). Be sure to report an issue if this is the case!
 
@@ -14,6 +20,7 @@ use std::convert::TryInto;
 use std::os::raw::c_int;
 use std::io;
 
+/// Interface to the Arcade Learning Environment emulator
 pub struct Ale {
 	ptr: *mut ale_sys::ALEInterface,
 	available_difficulties: Vec<i32>,
@@ -22,7 +29,7 @@ pub struct Ale {
 	minimal_actions: Vec<i32>,
 }
 impl Ale {
-	/// Creates a new interface to the Arcade Learning Environment., i.e. a new emulator insatnce.
+	/// Creates a new interface to the Arcade Learning Environment, i.e. a new emulator instance.
 	pub fn new() -> Ale {
 		let ptr = unsafe { ale_sys::ALE_new() };
 		assert!(ptr != null_mut());
@@ -191,7 +198,7 @@ impl Ale {
 	/// Writes the emulator's RAM contents to the buffer provided.
 	/// 
 	/// # Panics
-	/// If the buffer is smaller than what [`ram_size()`](#func.ram_size) returns.
+	/// If the buffer is smaller than what [`Ale::ram_size()`] returns.
 	pub fn get_ram(&mut self, ram: &mut [u8]) {
 		assert!(ram.len() >= self.ram_size());
 		unsafe { ale_sys::getRAM(self.ptr, ram.as_mut_ptr()); }
@@ -234,27 +241,27 @@ impl Ale {
 		unsafe { ale_sys::getScreenGrayscale(self.ptr, screen_data.as_mut_ptr()); }
 	}
 
-	/// Save the state of the system, to be restored using [`load_state()`](#func.load_state).
+	/// Save the state of the system, to be restored using [`Ale::load_state`].
 	pub fn save_state(&mut self) {
 		unsafe { ale_sys::saveState(self.ptr); } 
 	}
 
-	/// Loads the state of the system that was saved by [`save_state()`](#func.save_state).
+	/// Loads the state of the system that was saved by [`Ale::save_state`].
 	pub fn load_state(&mut self) {
 		unsafe { ale_sys::loadState(self.ptr); } 
 	}
 
-	/// This makes a copy of the environment state. This copy does *not* include pseudorandomness, making it suitable for planning purposes. By contrast, see [`clone_system_state()`](#func.clone_system_state).
+	/// This makes a copy of the environment state. This copy does *not* include pseudorandomness, making it suitable for planning purposes. By contrast, see [`Ale::clone_system_state()`].
 	pub fn clone_state(&mut self) -> AleState {
 		AleState {
 			ptr: unsafe { ale_sys::cloneState(self.ptr) },
 		}
 	}
 	
-	/// Reverse operation of [`clone_state()`](#func.clone_state). This does not restore pseudorandomness, so that repeated
-	/// calls to [`restore_state()`](#func.restore_state) in the stochastic controls setting will not lead to the same outcomes.
+	/// Reverse operation of [`Ale::clone_state`]. This does not restore pseudorandomness, so that repeated
+	/// calls to [`Ale::restore_state`] in the stochastic controls setting will not lead to the same outcomes.
 	///
-	/// By contrast, see [`restore_system_state()`](#func.restore_system_state).
+	/// By contrast, see [`Ale::restore_system_state`].
 	pub fn restore_state(&mut self, state: &AleState) {
 		unsafe { ale_sys::restoreState(self.ptr, state.ptr); }
 	}
@@ -266,7 +273,7 @@ impl Ale {
 		}
 	}
 	
-	/// Reverse operation of [`clone_system_state()`](#func.clone_system_state).
+	/// Reverse operation of [`Ale::clone_system_state`].
 	pub fn restore_system_state(&mut self, state: &AleState) {
 		unsafe { ale_sys::restoreSystemState(self.ptr, state.ptr); }
 	}
@@ -296,6 +303,9 @@ impl Drop for Ale {
 	}
 }
 
+/// State of the ALE
+///
+/// Used mainly by [`Ale::clone_state`] & [`Ale::restore_state`] to save the emulator's state, and restore it at a later point.
 pub struct AleState {
 	ptr: *mut ale_sys::ALEState,
 }
@@ -303,7 +313,7 @@ impl AleState {
 	/// Encodes the state as a raw bytestream.
 	/// 
 	/// # Panics
-	/// If the length of `buf` is not large enough. Use [`encode_state_len()`](#func.encode_state_len) to get the needed length.
+	/// If the length of `buf` is not large enough. Use [`AleState::encode_state_len`] to get the needed length.
 	pub fn encode_state(&self, buf: &mut [u8]) {
 		assert!(buf.len() >= self.encode_state_len(), "Buffer not long enough to store encoded state. Expected {}, got {}", self.encode_state_len(), buf.len());
 		unsafe { ale_sys::encodeState(self.ptr, buf.as_mut_ptr() as *mut _, buf.len() as c_int); }

@@ -21,13 +21,19 @@ fn main() -> Result<(), Error> {
 	let event_loop = EventLoop::new();
 	let mut input = WinitInputHelper::new();
 	let (window, surface, mut p_width, mut p_height, mut hidpi_factor) =
-		create_window("Conway's Game of Life", &event_loop, SCREEN_WIDTH, SCREEN_HEIGHT);
+		create_window("Breakout", &event_loop, SCREEN_WIDTH, SCREEN_HEIGHT);
 
 	let surface_texture = SurfaceTexture::new(p_width, p_height, surface);
 
 	let mut pixels = Pixels::new(SCREEN_WIDTH, SCREEN_HEIGHT, surface_texture)?;
 	let mut paused = false;
 	let mut prev_update = Instant::now();
+	println!("=== CONTROLS ===");
+	println!("Space - Start");
+	println!("A / Left - Flipper left");
+	println!("D / Right - Flipper right");
+	println!("P - Toggle pause");
+	println!();
 	println!("Paused: false");
 
 	let mut screen = vec![];
