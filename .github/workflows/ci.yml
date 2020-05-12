@@ -38,6 +38,11 @@ jobs:
           command: build
           args: --all-features
       - uses: actions-rs/cargo@v1
+        name: Run `cargo build --examples`
+        with:
+          command: build
+          args: --examples
+      - uses: actions-rs/cargo@v1
         name: Run `cargo test`
         with:
           command: test
