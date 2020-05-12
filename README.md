@@ -37,9 +37,8 @@ sudo apt install pkg-config libx11-dev
 ```
 
 If everything goes to plan, you should see something like this:
-```
-// TODO
-```
+
+![Breakout](./examples/breakout.png)
 
 # `ale-sys`
 Rust bindings to the [Arcade Learning Environment](https://github.com/mgbellemare/Arcade-Learning-Environment), with a few tweaks. See https://github.com/trolleyman/Arcade-Learning-Environment.
