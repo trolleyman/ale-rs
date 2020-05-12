@@ -14,6 +14,16 @@ fn is_win() -> bool {
 	false
 }
 
+#[cfg(mac)]
+fn is_mac() -> bool {
+	true
+}
+
+#[cfg(not(mac))]
+fn is_mac() -> bool {
+	false
+}
+
 fn visit_dirs<F: FnMut(&DirEntry), G: Fn(&DirEntry) -> bool>(dir: &Path, cb: &mut F, filter: &G) -> io::Result<()> {
 	if dir.is_dir() {
 		for entry in fs::read_dir(dir)? {
@@ -80,6 +90,9 @@ fn main() {
 	println!("cargo:rerun-if-changed=build.rs");
 	if !is_win() {
 		println!("cargo:rustc-link-lib=dylib=stdc++");
+	}
+	if is_mac() {
+		println!("cargo:rustc-link-search=native=/Applications/Xcode.app/Contents/Developer/Toolchains/OSX10.8.xctoolchain/usr/lib/c++/v1");
 	}
 	println!("cargo:rustc-link-search=native={}", lib_dir.display());
 	println!("cargo:rustc-link-lib=static=ale_c_static");
