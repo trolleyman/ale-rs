@@ -1,7 +1,7 @@
 # `ale`
 A Rust interface to the [Arcade Learning Environment](https://github.com/mgbellemare/Arcade-Learning-Environment).
 
-Some games such as Breakout, Asteroids, MsPacman and Space Invaders are bundled into the libarary, so that anyone using it can run them. A full list can be found [here](https://github.com/trolleyman/ale-rs/blob/master/src/lib.rs#L363-L440).
+Some games such as Breakout, Asteroids, Ms Pacman and Space Invaders are bundled into the libarary, so that anyone using it can run them. A full list can be found [here](https://github.com/trolleyman/ale-rs/blob/master/src/lib.rs#L363-L440).
 
 ## Requirements
 - CMake (See [cmake-rs](https://github.com/alexcrichton/cmake-rs))
@@ -37,9 +37,8 @@ sudo apt install pkg-config libx11-dev
 ```
 
 If everything goes to plan, you should see something like this:
-```
-// TODO
-```
+
+![Breakout](./examples/breakout.png)
 
 # `ale-sys`
 Rust bindings to the [Arcade Learning Environment](https://github.com/mgbellemare/Arcade-Learning-Environment), with a few tweaks. See https://github.com/trolleyman/Arcade-Learning-Environment.
