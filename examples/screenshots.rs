@@ -7,7 +7,7 @@ use rand::prelude::*;
 use ale::{Ale, BundledRom};
 
 fn main() {
-	let screenshots_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("examples").join("screenshots").join("breakout");
+	let screenshots_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("screenshots").join("breakout");
 	std::fs::create_dir_all(&screenshots_dir).expect("failed to create screenshots dir");
 
 	let mut ale = Ale::new();
