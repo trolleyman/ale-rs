@@ -79,7 +79,7 @@ fn main() {
 	}
 	println!("cargo:rerun-if-changed=build.rs");
 	if !is_win() {
-		println!("cargo:rustc-flags=-l dylib=stdc++");
+		println!("cargo:rustc-link-lib=dylib=stdc++");
 	}
 	println!("cargo:rustc-link-search=native={}", lib_dir.display());
 	println!("cargo:rustc-link-lib=static=ale_c_static");
