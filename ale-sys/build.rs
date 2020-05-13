@@ -14,23 +14,23 @@ fn is_win() -> bool {
 	false
 }
 
-#[cfg(linux)]
-fn is_linux() -> bool {
+#[cfg(unix)]
+fn is_unix() -> bool {
 	true
 }
 
-#[cfg(not(linux))]
-fn is_linux() -> bool {
+#[cfg(not(unix))]
+fn is_unix() -> bool {
 	false
 }
 
-#[cfg(mac)]
-fn is_mac() -> bool {
+#[cfg(macos)]
+fn is_macos() -> bool {
 	true
 }
 
-#[cfg(not(mac))]
-fn is_mac() -> bool {
+#[cfg(not(macos))]
+fn is_macos() -> bool {
 	false
 }
 
@@ -85,7 +85,7 @@ fn main() {
 	if is_win() {
 		config.cflag("-DWIN32=1").cxxflag("-DWIN32=1");
 	}
-	else if is_mac() {
+	else if is_macos() {
 		config.cflag("-DAPPLE=1").cxxflag("-DAPPLE=1");
 	}
 
@@ -103,10 +103,10 @@ fn main() {
 	println!("cargo:rerun-if-changed=build.rs");
 	
 	// Tell rust to link C++ stdlib
-	if is_mac() {
+	if is_macos() {
 		println!("cargo:rustc-link-lib=dylib=c++");
 	}
-	else if is_linux() {
+	else if is_unix() {
 		println!("cargo:rustc-link-lib=dylib=stdc++");
 	}
 	
