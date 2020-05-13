@@ -88,11 +88,8 @@ fn main() {
 		println!("cargo:rerun-if-changed={}", path.display());
 	}
 	println!("cargo:rerun-if-changed=build.rs");
-	if !is_win() {
+	if !is_win() && !is_mac() {
 		println!("cargo:rustc-link-lib=dylib=stdc++");
-	}
-	if is_mac() {
-		println!("cargo:rustc-link-search=native=/Applications/Xcode.app/Contents/Developer/Toolchains/OSX10.8.xctoolchain/usr/lib/c++/v1");
 	}
 	println!("cargo:rustc-link-search=native={}", lib_dir.display());
 	println!("cargo:rustc-link-lib=static=ale_c_static");
