@@ -2,17 +2,17 @@ on:
   push:
     branches: [master]
   pull_request:
-    branches: [master]
+    branches: ['*']
 
 name: CI
 
 jobs:
   build-and-test:
-    name: Build & Test
+    name: Build & Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v2
         name: Checkout repository
