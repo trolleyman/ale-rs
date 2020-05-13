@@ -41,7 +41,7 @@ jobs:
         name: Run `cargo build --examples`
         with:
           command: build
-          args: --examples
+          args: --examples --verbose
       - uses: actions-rs/cargo@v1
         name: Run `cargo test`
         with:
