@@ -24,12 +24,12 @@ fn is_unix() -> bool {
 	false
 }
 
-#[cfg(macos)]
+#[cfg(target_os = "macos")]
 fn is_macos() -> bool {
 	true
 }
 
-#[cfg(not(macos))]
+#[cfg(not(target_os = "macos"))]
 fn is_macos() -> bool {
 	false
 }
