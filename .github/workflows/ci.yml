@@ -7,42 +7,8 @@ on:
 name: CI
 
 jobs:
-  build_and_test:
-    name: Build & Test on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+  macos:
+    runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
-        name: Checkout repository
-        with:
-          submodules: true
-      - uses: actions-rs/toolchain@v1
-        name: Install Rust toolchain
-        with:
-          toolchain: stable
-      - uses: actions-rs/cargo@v1
-        name: Run `cargo xtask download-roms`
-        with:
-          command: xtask
-          args: download-roms
-      - uses: actions-rs/cargo@v1
-        name: Run `cargo check --all-features`
-        with:
-          command: check
-          args: --all-features
-      - uses: actions-rs/cargo@v1
-        name: Run `cargo build --all-features`
-        with:
-          command: build
-          args: --all-features
-      - uses: actions-rs/cargo@v1
-        name: Run `cargo build --examples`
-        with:
-          command: build
-          args: --examples
-      - uses: actions-rs/cargo@v1
-        name: Run `cargo test`
-        with:
-          command: test
+      - name: List files
+        run: ls -l /Applications/Xcode.app/Contents/Developer/Toolchains/OSX10.8.xctoolchain/usr/lib/c++/v1
