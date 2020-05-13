@@ -7,7 +7,7 @@ on:
 name: CI
 
 jobs:
-  build_and_test:
+  build-and-test:
     name: Build & Test
     runs-on: ${{ matrix.os }}
     strategy:
