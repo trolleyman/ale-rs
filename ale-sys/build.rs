@@ -62,8 +62,7 @@ fn main() {
 
 	if is_windows {
 		config.cflag("-DWIN32=1").cxxflag("-DWIN32=1");
-	}
-	else if is_macos {
+	} else if is_macos {
 		config.cflag("-DAPPLE=1").cxxflag("-DAPPLE=1");
 	}
 
@@ -83,8 +82,7 @@ fn main() {
 	// Tell rust to link C++ stdlib
 	if is_macos {
 		println!("cargo:rustc-link-lib=dylib=c++");
-	}
-	else if is_linux {
+	} else if is_linux {
 		println!("cargo:rustc-link-lib=dylib=stdc++");
 	}
 	
