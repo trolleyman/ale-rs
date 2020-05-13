@@ -1,5 +1,5 @@
 [submodule "ale"]
 	path = ale-sys/ale
 	url = https://github.com/trolleyman/Arcade-Learning-Environment
-	branch = vendor-zlib
+	branch = master
 
