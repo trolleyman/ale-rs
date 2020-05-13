@@ -14,6 +14,16 @@ fn is_win() -> bool {
 	false
 }
 
+#[cfg(linux)]
+fn is_linux() -> bool {
+	true
+}
+
+#[cfg(not(linux))]
+fn is_linux() -> bool {
+	false
+}
+
 #[cfg(mac)]
 fn is_mac() -> bool {
 	true
@@ -88,9 +98,16 @@ fn main() {
 		println!("cargo:rerun-if-changed={}", path.display());
 	}
 	println!("cargo:rerun-if-changed=build.rs");
-	if !is_win() && !is_mac() {
+	
+	// Tell rust to link C++ stdlib
+	if is_mac() {
+		println!("cargo:rustc-link-lib=dylib=c++");
+	}
+	if is_linux() {
 		println!("cargo:rustc-link-lib=dylib=stdc++");
 	}
+	
+	// Link compiled ALE static library
 	println!("cargo:rustc-link-search=native={}", lib_dir.display());
 	println!("cargo:rustc-link-lib=static=ale_c_static");
 }
