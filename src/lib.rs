@@ -33,13 +33,57 @@ impl Ale {
 	}
 
 	// pub fn getString(ale: *mut ALEInterface, key: *const c_char) -> *const c_char; // TODO
-	// pub fn getInt(ale: *mut ALEInterface, key: *const c_char) -> c_int; // TODO
-	// pub fn getBool(ale: *mut ALEInterface, key: *const c_char) -> bool; // TODO
-	// pub fn getFloat(ale: *mut ALEInterface, key: *const c_char) -> f32; // TODO
-	// pub fn setString(ale: *mut ALEInterface, key: *const c_char, value: *const c_char) -> c_void; // TODO
-	// pub fn setInt(ale: *mut ALEInterface, key: *const c_char, value: c_int) -> c_void; // TODO
-	// pub fn setBool(ale: *mut ALEInterface, key: *const c_char, value: bool) -> c_void; // TODO
-	// pub fn setFloat(ale: *mut ALEInterface, key: *const c_char, value: f32) -> c_void; // TODO
+
+	// Gets the value of an integer setting.
+	pub fn get_int(&mut self, key: &str) -> i32 {
+		let c_key = CString::new(key).unwrap();
+		unsafe { ale_sys::getInt(self.ptr, c_key.as_ptr()) }
+	}
+
+	// Gets the value of a bool setting.
+	pub fn get_bool(&mut self, key: &str) -> bool {
+		let c_key = CString::new(key).unwrap();
+		unsafe { ale_sys::getBool(self.ptr, c_key.as_ptr()) }
+	}
+
+	// Gets the value of a float setting.
+	pub fn get_float(&mut self, key: &str) -> f32 {
+		let c_key = CString::new(key).unwrap();
+		unsafe { ale_sys::getFloat(self.ptr, c_key.as_ptr()) }
+	}
+
+	// Sets the value of a string setting.
+	pub fn set_string(&mut self, key: &str, value: &str) {
+		let c_key = CString::new(key).unwrap();
+		let c_value = CString::new(value).unwrap();
+		unsafe {
+			ale_sys::setString(self.ptr, c_key.as_ptr(), c_value.as_ptr());
+		}
+	}
+
+	// Sets the value of a bool setting.
+	pub fn set_bool(&mut self, key: &str, value: bool) {
+		let c_key = CString::new(key).unwrap();
+		unsafe {
+			ale_sys::setBool(self.ptr, c_key.as_ptr(), value);
+		}
+	}
+
+	// Sets the value of an integer setting.
+	pub fn set_int(&mut self, key: &str, value: i32) {
+		let c_key = CString::new(key).unwrap();
+		unsafe {
+			ale_sys::setInt(self.ptr, c_key.as_ptr(), value);
+		}
+	}
+
+	// Sets the value of a float setting.
+	pub fn set_float(&mut self, key: &str, value: f32) {
+		let c_key = CString::new(key).unwrap();
+		unsafe {
+			ale_sys::setFloat(self.ptr, c_key.as_ptr(), value);
+		}
+	}
 
 	/// Resets the Atari and loads a bundled game.
 	///
